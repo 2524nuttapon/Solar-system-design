@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <title>การออกแบบระบบโซล่าเซลล์</title>
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
@@ -11,7 +12,7 @@
 :root[data-theme="dark"]{--bg:#12171d;--card:#1b222b;--tx:#e8edf2;--mu:#9aa7b5;--bd:#2c3642;--ac:#f5a524;--ac2:#4fc3a1;--in:#232c37}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font-family:"Sarabun","Noto Sans Thai",system-ui,sans-serif;line-height:1.5}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:"Sarabun","Noto Sans Thai","Leelawadee UI",Tahoma,sans-serif;-webkit-text-size-adjust:100%;line-height:1.5}
 main{max-width:760px;margin:0 auto;padding:16px}
 h1{font-size:1.35rem;margin:4px 0 2px}
 .sub{color:var(--mu);font-size:.9rem;margin-bottom:14px}
@@ -20,7 +21,7 @@ h2{font-size:1.05rem;margin:0 0 10px;display:flex;gap:8px;align-items:center}
 h2 b{background:var(--ac);color:#fff;border-radius:50%;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:.85rem}
 label{display:block;font-size:.85rem;color:var(--mu);margin-bottom:3px}
 input,select{width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--in);color:var(--tx);font:inherit}
-.g{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.g{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.g>div{display:flex;flex-direction:column;justify-content:flex-end}label{line-height:1.3;font-size:.82rem}select{text-overflow:ellipsis}.rb strong{overflow-wrap:anywhere}
 .tw{overflow-x:auto}
 table{width:100%;border-collapse:collapse;min-width:520px}
 th{font-size:.8rem;color:var(--mu);text-align:left;font-weight:600;padding:2px 4px}
@@ -39,6 +40,7 @@ svg{width:100%;height:auto;display:block}
 svg text{fill:var(--tx);font-family:inherit}
 .box{fill:var(--in);stroke:var(--ac2);stroke-width:2}
 svg{color:var(--mu)}.ln{stroke:var(--mu);stroke-width:2;fill:none}
+.g>div,.res>div{min-width:0}input,select{font-size:16px}input[type=number]{text-align:right}td input[data-k="n"]{text-align:left}
 .sy{margin-bottom:16px}.sy h3{font-size:1rem;margin:0}.sd{font-size:.82rem;color:var(--mu);margin-bottom:4px}.sb{fill:var(--mu)!important}.box.g2{stroke:var(--ac)}.st{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--bd)}.st:last-child{border-bottom:0}
 .stt{font-weight:700}.stf{color:var(--mu);font-size:.85rem}.sts{font-size:.88rem;margin-top:2px}.str{font-weight:700;color:var(--ac);font-size:1.1rem;text-align:right}
 .cb{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--bd);font-size:.92rem}.cb b{font-variant-numeric:tabular-nums}
@@ -112,19 +114,20 @@ svg{color:var(--mu)}.ln{stroke:var(--mu);stroke-width:2;fill:none}
 <script>
 var items=[{n:"หลอดไฟ LED",w:10,q:6,h:5},{n:"พัดลม",w:50,q:2,h:8},{n:"ตู้เย็น",w:100,q:1,h:10},{n:"ทีวี",w:80,q:1,h:4}];
 var $=function(i){return document.getElementById(i)};
-function nf(x,d){return Number(x).toLocaleString("th-TH",{maximumFractionDigits:d==null?0:d})}
+function nf(x,d){return Number(x).toLocaleString("en-US",{maximumFractionDigits:d==null?0:d})}
 function draw(){
  var b=$("rows");b.innerHTML="";
  items.forEach(function(it,i){
   var tr=document.createElement("tr");
   tr.innerHTML='<td><input data-i="'+i+'" data-k="n" value="'+it.n.replace(/"/g,"&quot;")+'"></td>'+
-  ['w','q','h'].map(function(k){return '<td><input type="number" min="0" step="any" data-i="'+i+'" data-k="'+k+'" value="'+it[k]+'"></td>'}).join("")+
-  '<td class="r" id="wh'+i+'"></td><td><button class="x" data-del="'+i+'" aria-label="ลบ">×</button></td>';
+  ['w','q','h'].map(function(k){return '<td data-l="'+({w:'กำลัง (W)',q:'จำนวน',h:'ชม./วัน'})[k]+'"><input type="number" min="0" step="any" data-i="'+i+'" data-k="'+k+'" value="'+it[k]+'"></td>'}).join("")+
+  '<td class="r" data-l="Wh/วัน" id="wh'+i+'"></td><td class="dl"><button class="x" data-del="'+i+'" aria-label="ลบ">×</button></td>';
   b.appendChild(tr);
  });
  calc();
 }
-function bx(x,y,w,t,v,u,hl){return '<rect class="box'+(hl?' g2':'')+'" x="'+x+'" y="'+y+'" width="'+w+'" height="72" rx="8"/><text x="'+(x+w/2)+'" y="'+(y+21)+'" text-anchor="middle" font-size="12">'+t+'</text><text x="'+(x+w/2)+'" y="'+(y+43)+'" text-anchor="middle" font-size="16" font-weight="700">'+v+'</text><text x="'+(x+w/2)+'" y="'+(y+61)+'" text-anchor="middle" font-size="11" class="sb">'+u+'</text>'}
+function fit(){document.querySelectorAll("#dg text[data-w]").forEach(function(t){var w=+t.getAttribute("data-w"),f=parseFloat(t.getAttribute("font-size")),n=0;if(!t.getComputedTextLength)return;t.setAttribute("font-size",t.dataset.f0||(t.dataset.f0=f));f=+t.dataset.f0;while(t.getComputedTextLength()>w&&f>8&&n<30){f-=.5;t.setAttribute("font-size",f);n++}})}
+function bx(x,y,w,t,v,u,hl){return '<rect class="box'+(hl?' g2':'')+'" x="'+x+'" y="'+y+'" width="'+w+'" height="72" rx="8"/><text x="'+(x+w/2)+'" y="'+(y+21)+'" text-anchor="middle" data-w="'+(w-12)+'" font-size="12">'+t+'</text><text x="'+(x+w/2)+'" y="'+(y+43)+'" text-anchor="middle" data-w="'+(w-12)+'" font-size="16" font-weight="700">'+v+'</text><text x="'+(x+w/2)+'" y="'+(y+61)+'" text-anchor="middle" data-w="'+(w-12)+'" font-size="11" class="sb">'+u+'</text>'}
 function card(t,d,h,body){return '<div class="sy"><h3>'+t+'</h3><div class="sd">'+d+'</div><svg viewBox="0 0 780 '+h+'" role="img" aria-label="'+t+'"><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>'+body+'</svg></div>'}
 function calc(){
  var wh=0,pk=0;
@@ -157,7 +160,7 @@ function calc(){
   off:card("Off-grid","แผนผังที่แสดง: แผง → ชาร์จเจอร์ + แบตเตอรี่ → อินเวอร์เตอร์ · ที่เปลี่ยนในการคำนวณ: ผลิตให้พอใช้ 100%",300,off),
   on:card("On-grid","แผนผังที่แสดง: แผง → กริดไทน์อินเวอร์เตอร์ → ไฟฟ้ากริด · ที่เปลี่ยนในการคำนวณ: ไม่มีชาร์จเจอร์และแบตเตอรี่ อินเวอร์เตอร์คิดจากกำลังแผงรวม ÷ 1.2",300,on),
   hy:card("Hybrid","แผนผังที่แสดง: แผง → ชาร์จเจอร์ + แบตเตอรี่ → ไฮบริดอินเวอร์เตอร์ ↔ ไฟฟ้ากริด · ที่เปลี่ยนในการคำนวณ: มีแบตเตอรี่สำรอง อินเวอร์เตอร์คิดจากโหลดสูงสุด",300,hy)};
- $("dg").innerHTML=T[sys];
+ $("dg").innerHTML=T[sys];fit();
  $("covw").style.display=sys==="off"?"none":"";
  var off0=sys==="off",on0=sys==="on",pe=off0?P1:Pc,cu=off0?1:cv,need=wh*cu/(psh*eff);
  var nm={off:"Off-grid",on:"On-grid",hy:"Hybrid"}[sys];
@@ -204,11 +207,11 @@ $("rows").addEventListener("click",function(e){var d=e.target.dataset.del;if(d!=
 $("add").onclick=function(){items.push({n:"อุปกรณ์ใหม่",w:0,q:1,h:1});draw()};
 ["rate","gr","pPv","pCc","pBt","pIv","oh","mt","dgi","sys","cov","psh","vs","pw","eff","bt","aut","ie","sf"].forEach(function(i){$(i).addEventListener("input",calc)});
 draw();
-function route(){var r=location.hash==="#result";$("p1").style.display=r?"none":"";$("p2").style.display=r?"":"none";window.scrollTo(0,0)}
+function route(){var r=location.hash==="#result";$("p1").style.display=r?"none":"";$("p2").style.display=r?"":"none";window.scrollTo(0,0);if(!r)fit()}
 $("go").onclick=function(){location.hash="result"};
 $("back").onclick=$("back2").onclick=function(){location.hash="app"};
 window.addEventListener("hashchange",route);
-route();
+route();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){calc()});
 </script>
 </body>
 </html>
